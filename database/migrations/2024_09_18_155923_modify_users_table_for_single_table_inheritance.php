@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('name'); // Suppression de la colonne name
-            $table->string('type')->default('administrateur'); // Colonne type pour différencier les utilisateurs
+            $table->dropColumn('name'); // DEleting the name column
+            $table->string('type')->default('administrateur'); // Adding the type column to differentiate between users
         });
     }
 
