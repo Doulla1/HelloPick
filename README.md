@@ -39,8 +39,6 @@ Cette API permet de gérer des **profils utilisateurs** et des **administrateurs
 3. Installez les dépendances :
    ```bash
     composer install
-    npm install
-    npm run dev
 4. Créez une copie du fichier `.env.example` et renommez-la `.env`
 5. Configurez votre base de données dans le fichier `.env`. par exemple :
    ```bash
