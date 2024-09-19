@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 
 class ProfilRequest extends FormRequest
 {
@@ -43,6 +44,31 @@ class ProfilRequest extends FormRequest
             'image.mimes' => 'Only jpeg, png, jpg, and gif files are allowed.',
             'statut.required' => 'The statut is required.',
             'statut.in' => 'The statut must be either inactif, en attente, or actif.',
+        ];
+    }
+
+    /**
+     * Get the body parameters used by the API.
+     * This method is used by Scribe to generate documentation.
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'nom' => [
+                'description' => 'The first name of the profile.',
+                'example' => 'John',
+            ],
+            'prenom' => [
+                'description' => 'The last name of the profile.',
+                'example' => 'Doe',
+            ],
+            'image' => [
+                'description' => 'An image file for the profile. Only jpeg, png, jpg, gif files are allowed. Max size: 2MB.',
+            ],
+            'statut' => [
+                'description' => 'The status of the profile. Can be inactif, en attente, or actif.',
+                'example' => 'actif',
+            ],
         ];
     }
 }

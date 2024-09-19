@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: 'HelloPick API'
+  description: 'Documentation de la mini API des gestion de profils'
+  version: 1.0.0
+servers:
+  -
+    url: 'localhost:8000'
+paths:
+  /api/login:
+    post:
+      summary: 'Login an admin and generate a Sanctum token.'
+      operationId: loginAnAdminAndGenerateASanctumToken
+      description: 'This endpoint allows an admin to log in and obtain a token for authentication.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Login successful'
+                  token: 3|pSswzSRJfmrJELKJJZfe6xzPM77c7XMQQQq3nsdj
+                properties:
+                  message:
+                    type: string
+                    example: 'Login successful'
+                  token:
+                    type: string
+                    example: 3|pSswzSRJfmrJELKJJZfe6xzPM77c7XMQQQq3nsdj
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Invalid credentials'
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid credentials'
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Unauthorized access'
+                properties:
+                  message:
+                    type: string
+                    example: 'Unauthorized access'
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Login failed. Please try again later.'
+                properties:
+                  message:
+                    type: string
+                    example: 'Login failed. Please try again later.'
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'The email of the admin.'
+                  example: admin@example.com
+                password:
+                  type: string
+                  description: 'The password of the admin.'
+                  example: password123
+              required:
+                - email
+                - password
+      security: []
+  /api/profils-actifs:
+    get:
+      summary: "Return all active profiles without the 'statut' field for non-admins but with the 'statut' field for admins."
+      operationId: returnAllActiveProfilesWithoutThestatutFieldForNonAdminsButWithThestatutFieldForAdmins
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  profils: []
+                properties:
+                  profils:
+                    type: array
+                    example: []
+      tags:
+        - Endpoints
+      security: []
+  /api/admins:
+    post:
+      summary: 'Handle the request to create a new administrator.'
+      operationId: handleTheRequestToCreateANewAdministrator
+      description: 'Only admins are allowed to create new admins.'
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'The email of the user trying to log in. Must be a valid email address.'
+                  example: user@example.com
+                password:
+                  type: string
+                  description: 'The password of the user. Must be at least 8 characters.'
+                  example: password123
+              required:
+                - email
+                - password
+      security: []
+  /api/profils:
+    post:
+      summary: 'Handle the request to create a new profil.'
+      operationId: handleTheRequestToCreateANewProfil
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                  description: 'The first name of the profile. Must not be greater than 255 characters.'
+                  example: John
+                prenom:
+                  type: string
+                  description: 'The last name of the profile. Must not be greater than 255 characters.'
+                  example: Doe
+                image:
+                  type: string
+                  format: binary
+                  description: 'An image file for the profile. Only jpeg, png, jpg, gif files are allowed. Max size: 2MB. Must be an image. Must not be greater than 2048 kilobytes.'
+                statut:
+                  type: string
+                  description: 'The status of the profile. Can be inactif, en attente, or actif.'
+                  example: actif
+                  enum:
+                    - inactif
+                    - 'en attente'
+                    - actif
+              required:
+                - nom
+                - prenom
+                - image
+                - statut
+      security: []
+  '/api/profils/{id}':
+    put:
+      summary: 'Update an existing profile.'
+      operationId: updateAnExistingProfile
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                  description: 'The first name of the profile. Must not be greater than 255 characters.'
+                  example: John
+                prenom:
+                  type: string
+                  description: 'The last name of the profile. Must not be greater than 255 characters.'
+                  example: Doe
+                image:
+                  type: string
+                  format: binary
+                  description: 'An image file for the profile. Only jpeg, png, jpg, gif files are allowed. Max size: 2MB. Must be an image. Must not be greater than 2048 kilobytes.'
+                statut:
+                  type: string
+                  description: 'The status of the profile. Can be inactif, en attente, or actif.'
+                  example: actif
+                  enum:
+                    - inactif
+                    - 'en attente'
+                    - actif
+              required:
+                - nom
+                - prenom
+                - image
+                - statut
+      security: []
+    delete:
+      summary: 'Delete an existing profile.'
+      operationId: deleteAnExistingProfile
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the profil.'
+        example: 3
+        required: true
+        schema:
+          type: integer
+tags:
+  -
+    name: Authentication
+    description: ''
+  -
+    name: Endpoints
+    description: ''
+components:
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: ''
+security:
+  -
+    default: []

@@ -43,4 +43,22 @@ class AdminCreateRequest extends FormRequest
             'password.confirmed' => 'The password confirmation does not match.',
         ];
     }
+
+    /**
+     * Get the body parameters used by the API.
+     * This method is used by Scribe to generate documentation.
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'email' => [
+                'description' => 'The email of the user trying to log in.',
+                'example' => 'user@example.com',
+            ],
+            'password' => [
+                'description' => 'The password of the user.',
+                'example' => 'password123',
+            ],
+        ];
+    }
 }

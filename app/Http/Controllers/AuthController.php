@@ -11,10 +11,28 @@ use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     /**
-     * Handle the login request and generate a Sanctum token.
+     * Login an admin and generate a Sanctum token.
      *
-     * @param LoginRequest $request
-     * @return JsonResponse
+     * This endpoint allows an admin to log in and obtain a token for authentication.
+     *
+     * @group Authentication
+     *
+     * @bodyParam email string required The email of the admin. Example: admin@example.com
+     * @bodyParam password string required The password of the admin. Example: password123
+     *
+     * @response 200 {
+     *  "message": "Login successful",
+     *  "token": "3|pSswzSRJfmrJELKJJZfe6xzPM77c7XMQQQq3nsdj"
+     * }
+     * @response 401 {
+     *  "message": "Invalid credentials"
+     * }
+     * @response 403 {
+     *  "message": "Unauthorized access"
+     * }
+     * @response 500 {
+     *  "message": "Login failed. Please try again later."
+     * }
      */
     public function login(LoginRequest $request)
     {
