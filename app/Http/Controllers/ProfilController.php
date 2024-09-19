@@ -7,6 +7,7 @@ use App\Models\Profil;
 use App\Services\TokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProfilController extends Controller
@@ -33,24 +34,33 @@ class ProfilController extends Controller
      */
     public function store(ProfilRequest $request): JsonResponse
     {
-        // Retrieve validated data from the request
-        $validated = $request->validated();
+        try {
+            // Retrieve validated data from the request
+            $validated = $request->validated ();
 
-        // Store the image securely in the storage/public/images folder
-        $path = $request->file('image')->store('images', 'public');
+            // Store the image securely in the storage/public/images folder
+            $path = $request->file ('image')->store ('images', 'public');
 
-        // Create a new profil
-        $profil = Profil::create([
-            'nom' => $validated['nom'],
-            'prenom' => $validated['prenom'],
-            'image' => $path,
-            'statut' => $validated['statut'],
-        ]);
+            // Create a new profil
+            $profil = Profil::create ([
+                'nom' => $validated['nom'],
+                'prenom' => $validated['prenom'],
+                'image' => $path,
+                'statut' => $validated['statut'],
+            ]);
 
-        return response()->json([
-            'message' => 'Profil created successfully',
-            'profil' => $profil,
-        ], 201);
+            return response ()->json ([
+                'message' => 'Profil created successfully',
+                'profil' => $profil,
+            ], 201);
+        } catch (\Exception $e) {
+            // Log the error for further analysis
+            Log::error ('Failed to create profil: ' . $e->getMessage ());
+
+            return response ()->json ([
+                'message' => 'Failed to create profil',
+            ], 500);
+        }
     }
 
     /**
@@ -61,31 +71,40 @@ class ProfilController extends Controller
      */
     public function getActiveProfiles(Request $request): JsonResponse
     {
-        // Extract the token from the request header
-        $token = $this->tokenService->extractToken($request->header('Authorization'));
+        try {
+            // Extract the token from the request header
+            $token = $this->tokenService->extractToken ($request->header ('Authorization'));
 
-        $user = null;
+            $user = null;
 
-        if ($token) {
-            // Validate the token and retrieve the associated user
-            $user = $this->tokenService->validateToken($token);
+            if ($token) {
+                // Validate the token and retrieve the associated user
+                $user = $this->tokenService->validateToken ($token);
+            }
+
+            if ($user && $user->isAdmin ()) {
+                // Admins can see the 'statut' field
+                $profils = Profil::where ('statut', 'actif')->get ([
+                    'id', 'nom', 'prenom', 'image', 'statut', 'created_at', 'updated_at'
+                ]);
+            } else {
+                // Non-admins or anonymous users cannot see 'statut'
+                $profils = Profil::where ('statut', 'actif')->get ([
+                    'id', 'nom', 'prenom', 'image', 'created_at', 'updated_at'
+                ]);
+            }
+
+            return response ()->json ([
+                'profils' => $profils,
+            ], 200);
+        } catch (\Exception $e) {
+            // Log the error for further analysis
+            Log::error ('Failed to retrieve active profiles: ' . $e->getMessage ());
+
+            return response ()->json ([
+                'message' => 'Failed to retrieve active profiles',
+            ], 500);
         }
-
-        if ($user && $user->isAdmin()) {
-            // Admins can see the 'statut' field
-            $profils = Profil::where('statut', 'actif')->get([
-                'id', 'nom', 'prenom', 'image', 'statut', 'created_at', 'updated_at'
-            ]);
-        } else {
-            // Non-admins or anonymous users cannot see 'statut'
-            $profils = Profil::where('statut', 'actif')->get([
-                'id', 'nom', 'prenom', 'image', 'created_at', 'updated_at'
-            ]);
-        }
-
-        return response()->json([
-            'profils' => $profils,
-        ], 200);
     }
 
     /**
@@ -97,34 +116,43 @@ class ProfilController extends Controller
      */
     public function update(ProfilRequest $request, int $id): JsonResponse
     {
-        // Retrieve validated data from the request
-        $validated = $request->validated();
+        try {
+            // Retrieve validated data from the request
+            $validated = $request->validated ();
 
-        $profil = Profil::findOrFail($id);
+            $profil = Profil::findOrFail ($id);
 
 
-        // Check if a new image is uploaded and store it
-        if ($request->hasFile('image')) {
-            // Delete the old image
-            if ($profil->image) {
-                Storage::disk('public')->delete($profil->image);
+            // Check if a new image is uploaded and store it
+            if ($request->hasFile ('image')) {
+                // Delete the old image
+                if ($profil->image) {
+                    Storage::disk ('public')->delete ($profil->image);
+                }
+
+                // Store the new image
+                $path = $request->file ('image')->store ('images', 'public');
+                $profil->image = $path;
             }
 
-            // Store the new image
-            $path = $request->file('image')->store('images', 'public');
-            $profil->image = $path;
+            // Update the other fields
+            $profil->nom = $validated['nom'];
+            $profil->prenom = $validated['prenom'];
+            $profil->statut = $validated['statut'];
+            $profil->save ();
+
+            return response ()->json ([
+                'message' => 'Profil updated successfully',
+                'profil' => $profil,
+            ], 200);
+        } catch (\Exception $e) {
+            // Log the error for further analysis
+            Log::error ('Failed to update profil: ' . $e->getMessage ());
+
+            return response ()->json ([
+                'message' => 'Failed to update profil',
+            ], 500);
         }
-
-        // Update the other fields
-        $profil->nom = $validated['nom'];
-        $profil->prenom = $validated['prenom'];
-        $profil->statut = $validated['statut'];
-        $profil->save();
-
-        return response()->json([
-            'message' => 'Profil updated successfully',
-            'profil' => $profil,
-        ], 200);
     }
 
     /**
@@ -135,18 +163,29 @@ class ProfilController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        $profil = Profil::findOrFail($id);
+        try {
+            // Find the profile
+            $profil = Profil::findOrFail($id);
 
-        // Delete the profile image if it exists
-        if ($profil->image) {
-            Storage::disk('public')->delete($profil->image);
+            // Delete the profile image if it exists
+            if ($profil->image) {
+                Storage::disk('public')->delete($profil->image);
+            }
+
+            // Delete the profile
+            $profil->delete();
+
+            return response()->json([
+                'message' => 'Profil deleted successfully',
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Log the error and return a generic error message
+            Log::error('Failed to delete profil: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to delete profil. Please try again later.',
+            ], 500);
         }
-
-        // Delete the profile
-        $profil->delete();
-
-        return response()->json([
-            'message' => 'Profil deleted successfully',
-        ], 200);
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Requests\AdminCreateRequest;
 use App\Models\Administrateur;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -22,15 +23,26 @@ class AdminController extends Controller
         // Retrieve validated data from the request
         $validated = $request->validated();
 
-        // Create a new administrator
-        $admin = Administrateur::create([
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+        try{
+            // Create a new administrator
+            $admin = Administrateur::create([
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
 
-        return response()->json([
-            'message' => 'Administrator created successfully',
-            'admin' => $admin,
-        ], 201);
+            return response()->json([
+                'message' => 'Administrator created successfully',
+                'admin' => $admin,
+            ], 201);
+        } catch (\Exception $e) {
+            // Log the error for further analysis
+            Log::error('Failed to create administrator: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to create administrator',
+            ], 500);
+        }
+
+
     }
 }
