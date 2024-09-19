@@ -7,6 +7,7 @@ use App\Models\Profil;
 use App\Services\TokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfilController extends Controller
 {
@@ -84,6 +85,68 @@ class ProfilController extends Controller
 
         return response()->json([
             'profils' => $profils,
+        ], 200);
+    }
+
+    /**
+     * Update an existing profile.
+     *
+     * @param ProfilRequest $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function update(ProfilRequest $request, int $id): JsonResponse
+    {
+        // Retrieve validated data from the request
+        $validated = $request->validated();
+
+        $profil = Profil::findOrFail($id);
+
+
+        // Check if a new image is uploaded and store it
+        if ($request->hasFile('image')) {
+            // Delete the old image
+            if ($profil->image) {
+                Storage::disk('public')->delete($profil->image);
+            }
+
+            // Store the new image
+            $path = $request->file('image')->store('images', 'public');
+            $profil->image = $path;
+        }
+
+        // Update the other fields
+        $profil->nom = $validated['nom'];
+        $profil->prenom = $validated['prenom'];
+        $profil->statut = $validated['statut'];
+        $profil->save();
+
+        return response()->json([
+            'message' => 'Profil updated successfully',
+            'profil' => $profil,
+        ], 200);
+    }
+
+    /**
+     * Delete an existing profile.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function delete(int $id): JsonResponse
+    {
+        $profil = Profil::findOrFail($id);
+
+        // Delete the profile image if it exists
+        if ($profil->image) {
+            Storage::disk('public')->delete($profil->image);
+        }
+
+        // Delete the profile
+        $profil->delete();
+
+        return response()->json([
+            'message' => 'Profil deleted successfully',
         ], 200);
     }
 }

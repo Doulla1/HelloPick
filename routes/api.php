@@ -13,4 +13,6 @@ Route::get('/profils-actifs', [ProfilController::class, 'getActiveProfiles']); /
 Route::middleware(["auth:sanctum", EnsureIsAdmin::class])->group(function () {
     Route::post('/admins', [AdminController::class, 'create']); // Route for creating a new admin
     Route::post('/profils', [ProfilController::class, 'store']); // Route for creating a profil
+    Route::put('/profils/{id}', [ProfilController::class, 'update']); // Route for updating a profile
+    Route::delete('/profils/{id}', [ProfilController::class, 'delete']); // Route for deleting a profile
 });
